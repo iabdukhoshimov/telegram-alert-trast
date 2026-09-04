@@ -1,0 +1,28 @@
+[Unit]
+Description=Telegram Alertbot (Alertmanager webhook → Telegram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=alertbot
+Group=alertbot
+WorkingDirectory=/opt/telegram-alertbot
+EnvironmentFile=/opt/telegram-alertbot/.env
+ExecStart=/opt/telegram-alertbot/venv/bin/gunicorn \
+    --bind 127.0.0.1:5001 \
+    --workers 2 \
+    --timeout 30 \
+    --access-logfile - \
+    bot:app
+Restart=on-failure
+RestartSec=5s
+
+# Harden: bot only needs outbound HTTPS to Telegram API
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/telegram-alertbot
+
+[Install]
+WantedBy=multi-user.target
